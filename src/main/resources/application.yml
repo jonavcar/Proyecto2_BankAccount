@@ -3,7 +3,7 @@ server:
 
 spring:
     application:
-        name: accountv2-microservice
+        name: account-microservice
     data:
         mongodb:
             host: localhost
@@ -13,4 +13,4 @@ spring:
 eureka:
     client:
         serviceUrl:
-            defautlZone: http://localhost:8090/eureka/
+            defaultZone: http://localhost:9999/eureka/
