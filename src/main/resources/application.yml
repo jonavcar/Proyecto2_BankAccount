@@ -1,0 +1,16 @@
+server:
+  port: 8081
+
+spring:
+    application:
+        name: accountv2-microservice
+    data:
+        mongodb:
+            host: localhost
+            port: 27017
+            database: BankAccount
+
+eureka:
+    client:
+        serviceUrl:
+            defautlZone: http://localhost:8090/eureka/
