@@ -17,6 +17,7 @@ import com.banck.bankaccount.aplication.CreditOperations;
 import com.banck.bankaccount.aplication.impl.AccountOperationsImpl;
 import com.banck.bankaccount.utils.AccountType;
 import com.banck.bankaccount.utils.CustomerType;
+import com.banck.bankaccount.utils.SunatUtils;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -115,6 +116,15 @@ public class AccountController {
                 return Mono.just(ResponseEntity.ok(""
                         + "Solo existen estos Codigos de Tipos de Clientes: \n"
                         + msgTipoCliente));
+            }
+
+            if (CustomerType.PERSONAL.equals(account.getCustomerType())
+                    || CustomerType.PERSONAL_VIP.equals(account.getCustomerType())) {
+
+            } else {
+                if (!SunatUtils.isRUCValid(account.getCustomer())) {
+                    return Mono.just(ResponseEntity.ok("El RUC " + account.getCustomer() + " de la Empresa No es Válido!!"));
+                }
             }
 
             /*
