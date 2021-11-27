@@ -20,6 +20,7 @@ import com.banck.bankaccount.utils.CustomerType;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +61,11 @@ public class AccountController {
         reqAccount.setAccount(reqAccount.getCustomer() + "-" + getRandomNumberString());
         reqAccount.setDateCreated(dateTime.format(formatter));
         return Mono.just(reqAccount).flatMap(account -> {
+
+            /*
+                Se realiza validacion basica de datos para poder registrar
+                un cuenta bancaria
+             */
             boolean isAccountType = false;
             for (AccountType tc : AccountType.values()) {
                 if (account.getAccountType().equals(tc.value)) {
@@ -80,6 +86,49 @@ public class AccountController {
                 return Mono.just(ResponseEntity.ok("El codigo de Tipo Cliente (" + account.getCustomerType() + "), no existe!"));
             }
 
+            /*
+                Se define la logica de las cuentas al registra una cuenta segun
+                el tipo de la cuenta que se esta creando
+             */
+            if (AccountType.SAVINGS_ACCOUNT.equals(account.getAccountType())) {
+                account.setComMaint(false);
+                account.setDayMovem(0);
+                account.setMmpdm(0);
+                if (CustomerType.PERSONAL_VIP.equals(account.getCustomerType())) {
+                    account.setTopMMovem(0);
+                    // El registrador debe ingresar el monto minimo de promedio diario mensual
+                    if (Optional.ofNullable(account.getMmpdm()).isEmpty() || account.getMmpdm() <= 0) {
+                        return Mono.just(ResponseEntity.ok("Debe ingresar el Monto minimo de promedio diario mensual Ejemplo: { mmpdm: 100}"));
+                    }
+                } else {
+                    account.setMmpdm(0);
+                    // El registrador debe ingresar el Numero de movimientos mensuales
+                    if (Optional.ofNullable(account.getTopMMovem()).isEmpty() || account.getTopMMovem() <= 0) {
+                        return Mono.just(ResponseEntity.ok("Debe ingresar el Numero de movimientos mensuales Ejemplo: { topMMovem: 2}"));
+                    }
+                }
+
+            }
+            if (AccountType.FIXED_TERM_ACCOUNT.equals(account.getAccountType())) {
+                account.setComMaint(false);
+                account.setTopMMovem(1);
+                account.setMmpdm(0);
+                //El registrador debe ingresar el dia del mes en que el usuario puede realizar algun movimiento bancario
+                if (Optional.ofNullable(account.getDayMovem()).isEmpty() || account.getDayMovem() <= 0) {
+                    return Mono.just(ResponseEntity.ok("Debe ingresar el Dia del mes en que el usuario puede realizar algun movimiento Ejemplo: { dayMovem: 21}"));
+                }
+            }
+            if (AccountType.CURRENT_ACCOUNT.equals(account.getAccountType())) {
+                account.setComMaint(true);
+                account.setTopMMovem(0);
+                account.setDayMovem(0);
+                account.setMmpdm(0);
+            }
+
+            /*
+                Se realiza la logica de cuentas con relacion al tipo de
+                cliente ya sea pesonal como empresarial
+             */
             if (CustomerType.PERSONAL.equals(account.getCustomerType())) {
                 return operations.listAccountByCustomer(account.getCustomer()).filter(p -> p.getAccountType().equals(account.getAccountType())).count().flatMap(fm -> {
                     if (fm.intValue() == 0) {
