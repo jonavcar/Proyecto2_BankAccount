@@ -1,3 +1,4 @@
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -9,13 +10,25 @@ package com.banck.bankaccount.utils;
  * @author jonavcar
  */
 public enum CustomerType {
-    LEGAL_PERSON("PJ") {
+    PERSONAL("PJ") {
         @Override
         public boolean equals(String customerType) {
             return value.equals(customerType);
         }
     },
-    NATURAL_PERSON("PN") {
+    PERSONAL_VIP("PV") {
+        @Override
+        public boolean equals(String customerType) {
+            return value.equals(customerType);
+        }
+    },
+    BUSINESS("PN") {
+        @Override
+        public boolean equals(String customerType) {
+            return value.equals(customerType);
+        }
+    },
+    BUSINESS_PYME("BP") {
         @Override
         public boolean equals(String customerType) {
             return value.equals(customerType);

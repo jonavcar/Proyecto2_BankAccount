@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import com.banck.bankaccount.aplication.AccountOperations;
+import com.banck.bankaccount.aplication.CreditOperations;
 import com.banck.bankaccount.aplication.impl.AccountOperationsImpl;
 import com.banck.bankaccount.utils.AccountType;
 import com.banck.bankaccount.utils.CustomerType;
@@ -37,6 +38,7 @@ public class AccountController {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
     LocalDateTime dateTime = LocalDateTime.now(ZoneId.of("America/Bogota"));
     private final AccountOperations operations;
+    private final CreditOperations creditOperations;
 
     @GetMapping
     public Flux<Account> listAll() {
@@ -54,49 +56,80 @@ public class AccountController {
     }
 
     @PostMapping
-    public Mono<ResponseEntity> create(@RequestBody Account c) {
-        c.setAccount(c.getCustomer() + "-" + getRandomNumberString());
-        c.setDateCreated(dateTime.format(formatter));
-        return Mono.just(c).flatMap(m -> {
+    public Mono<ResponseEntity> create(@RequestBody Account reqAccount) {
+        reqAccount.setAccount(reqAccount.getCustomer() + "-" + getRandomNumberString());
+        reqAccount.setDateCreated(dateTime.format(formatter));
+        return Mono.just(reqAccount).flatMap(account -> {
             boolean isAccountType = false;
             for (AccountType tc : AccountType.values()) {
-                if (c.getAccountType().equals(tc.value)) {
+                if (account.getAccountType().equals(tc.value)) {
                     isAccountType = true;
                 }
             }
 
             boolean isCustomerType = false;
             for (CustomerType tc : CustomerType.values()) {
-                if (c.getCustomerType().equals(tc.value)) {
+                if (account.getCustomerType().equals(tc.value)) {
                     isCustomerType = true;
                 }
             }
             if (!isAccountType) {
-                return Mono.just(ResponseEntity.ok("El codigo de Tipo Cuenta (" + c.getAccountType() + "), no existe!"));
+                return Mono.just(ResponseEntity.ok("El codigo de Tipo Cuenta (" + account.getAccountType() + "), no existe!"));
             }
             if (!isCustomerType) {
-                return Mono.just(ResponseEntity.ok("El codigo de Tipo Cliente (" + c.getCustomerType() + "), no existe!"));
+                return Mono.just(ResponseEntity.ok("El codigo de Tipo Cliente (" + account.getCustomerType() + "), no existe!"));
             }
 
-            if (CustomerType.NATURAL_PERSON.equals(m.getCustomerType())) {
-
-                return operations.listAccountByCustomer(m.getCustomer()).filter(p -> p.getAccountType().equals(m.getAccountType())).count().flatMap(fm -> {
+            if (CustomerType.PERSONAL.equals(account.getCustomerType())) {
+                return operations.listAccountByCustomer(account.getCustomer()).filter(p -> p.getAccountType().equals(account.getAccountType())).count().flatMap(fm -> {
                     if (fm.intValue() == 0) {
-                        return operations.create(c).flatMap(rp -> {
+                        return operations.create(account).flatMap(rp -> {
                             return Mono.just(ResponseEntity.ok(rp));
                         });
                     } else {
-                        return Mono.just(ResponseEntity.ok("El cliente ya tiene este tipo de cuenta."));
+                        return Mono.just(ResponseEntity.ok("El Cliente Personal ya tiene este tipo de cuenta."));
                     }
                 });
-            } else {
-                if (AccountType.CURRENT_ACCOUNT.equals(m.getAccountType())) {
-                    return operations.create(c).flatMap(rp -> {
+            } else if (CustomerType.PERSONAL_VIP.equals(account.getCustomerType())) {
+                if (AccountType.SAVINGS_ACCOUNT.equals(account.getAccountType())) {
+                    return creditOperations.creditCardsByCustomer(account.getCustomer()).flatMap(num -> {
+                        if (num == 0) {
+                            return Mono.just(ResponseEntity.ok("El Cliente Personal VIP debe tener previamente una Targeta de Credito."));
+                        } else {
+                            return operations.create(account).flatMap(rp -> {
+                                return Mono.just(ResponseEntity.ok(rp));
+                            });
+                        }
+
+                    }).onErrorReturn(ResponseEntity.ok("¡¡Ocurrio un Error en El Servicio de Credito (Consulta targetas), Reintente Mas Tarde!!"));
+                } else {
+                    return Mono.just(ResponseEntity.ok("El Cliente Personal VIP, solo puede tener cuentas de ahorro."));
+                }
+            } else if (CustomerType.BUSINESS.equals(account.getCustomerType())) {
+                if (AccountType.CURRENT_ACCOUNT.equals(account.getAccountType())) {
+                    return operations.create(account).flatMap(rp -> {
                         return Mono.just(ResponseEntity.ok(rp));
                     });
                 } else {
-                    return Mono.just(ResponseEntity.ok("La empresa solo puede tener cuentas corrientes!!"));
+                    return Mono.just(ResponseEntity.ok("El Cliente Empresarial, solo puede tener cuentas corrientes!!"));
                 }
+            } else if (CustomerType.BUSINESS_PYME.equals(account.getCustomerType())) {
+                if (AccountType.CURRENT_ACCOUNT.equals(account.getAccountType())) {
+                    return creditOperations.creditCardsByCustomer(account.getCustomer()).flatMap(num -> {
+                        if (num == 0) {
+                            return Mono.just(ResponseEntity.ok("El Cliente Empresarial PYME debe tener previamente una Targeta de Credito."));
+                        } else {
+                            return operations.create(account).flatMap(rp -> {
+                                return Mono.just(ResponseEntity.ok(rp));
+                            });
+                        }
+
+                    }).onErrorReturn(ResponseEntity.ok("¡¡Ocurrio un Error en El Servicio de Credito (Consulta targetas), Reintente Mas Tarde!!"));
+                } else {
+                    return Mono.just(ResponseEntity.ok("El Cliente Empresarial PYME, solo puede tener cuentas corrientes."));
+                }
+            } else {
+                return Mono.just(ResponseEntity.ok("No se ha realizado nada!!"));
             }
         });
     }
@@ -116,4 +149,5 @@ public class AccountController {
         int number = rnd.nextInt(9999);
         return String.format("%04d", number);
     }
+
 }

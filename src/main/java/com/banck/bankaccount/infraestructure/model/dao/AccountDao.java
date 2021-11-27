@@ -18,4 +18,9 @@ public class AccountDao {
     public String customerType;
     public String accountType;
     public String dateCreated;
+    public double mmpdm;
+    public int topMMovem;
+    public boolean comMaint;
+    public int dayMovem;
+    public boolean status;
 }
