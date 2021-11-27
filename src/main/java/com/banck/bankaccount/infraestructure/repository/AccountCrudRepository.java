@@ -30,6 +30,13 @@ public class AccountCrudRepository implements AccountRepository {
         account.setCustomerType(ad.getCustomerType());
         account.setAccountType(ad.getAccountType());
         account.setDateCreated(ad.getDateCreated());
+
+        account.setComMaint(ad.isComMaint());
+        account.setDayMovem(ad.getDayMovem());
+        account.setMmpdm(ad.getMmpdm());
+        account.setTopMMovem(ad.getTopMMovem());
+        account.setStatus(ad.isStatus());
+
         return account;
     }
 
@@ -40,7 +47,6 @@ public class AccountCrudRepository implements AccountRepository {
 
     @Override
     public Mono<Account> create(Account c) {
-        Flux<AccountDao> fa = accountRepository.findAllByCustomer(c.getCustomer());
         return accountRepository.save(AccountToAccountDao(c)).map(this::AccountDaoToAccount);
     }
 
@@ -55,13 +61,20 @@ public class AccountCrudRepository implements AccountRepository {
         accountRepository.deleteById(account).subscribe();
     }
 
-    public AccountDao AccountToAccountDao(Account c) {
+    public AccountDao AccountToAccountDao(Account account) {
         AccountDao creditDao = new AccountDao();
-        creditDao.setAccount(c.getAccount());
-        creditDao.setCustomer(c.getCustomer());
-        creditDao.setCustomerType(c.getCustomerType());
-        creditDao.setAccountType(c.getAccountType());
-        creditDao.setDateCreated(c.getDateCreated());
+        creditDao.setAccount(account.getAccount());
+        creditDao.setCustomer(account.getCustomer());
+        creditDao.setCustomerType(account.getCustomerType());
+        creditDao.setAccountType(account.getAccountType());
+        creditDao.setDateCreated(account.getDateCreated());
+
+        creditDao.setComMaint(account.isComMaint());
+        creditDao.setDayMovem(account.getDayMovem());
+        creditDao.setMmpdm(account.getMmpdm());
+        creditDao.setTopMMovem(account.getTopMMovem());
+        creditDao.setStatus(account.isStatus());
+
         return creditDao;
     }
 
@@ -69,6 +82,5 @@ public class AccountCrudRepository implements AccountRepository {
     public Flux<Account> listAccountByCustomer(String customer) {
         return accountRepository.findAllByCustomer(customer).map(this::AccountDaoToAccount);
     }
-    
 
 }
