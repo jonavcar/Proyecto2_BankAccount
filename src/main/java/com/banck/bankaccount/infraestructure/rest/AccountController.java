@@ -61,6 +61,32 @@ public class AccountController {
         reqAccount.setAccount(reqAccount.getCustomer() + "-" + getRandomNumberString());
         reqAccount.setDateCreated(dateTime.format(formatter));
         return Mono.just(reqAccount).flatMap(account -> {
+            String msgTipoCuenta
+                    = "Cuenta Ahorro = { \"accountType\": \"CA\" }\n"
+                    + "Cuenta Corriente = { \"accountType\": \"CC\" }\n"
+                    + "Cuenta Plazo Fijo = { \"accountType\": \"CPF\" }";
+            String msgTipoCliente
+                    = "Cliente Personal = { \"customerType\": \"CP\" }\n"
+                    + "Cliente Personal VIP = { \"customerType\": \"CPV\" }\n"
+                    + "Cliente Empresarial = { \"customerType\": \"CE\" }\n"
+                    + "Cliente Empresarial PYME = { \"customerType\": \"CEP\" }";
+
+            if (Optional.ofNullable(account.getAccountType()).isEmpty()) {
+                return Mono.just(ResponseEntity.ok(""
+                        + "Debe ingresar Tipo Cuenta, Ejemplos: \n"
+                        + msgTipoCuenta));
+            }
+
+            if (Optional.ofNullable(account.getCustomer()).isEmpty()) {
+                return Mono.just(ResponseEntity.ok("Debe ingresar el cliente, Ejemplo { \"customer\": \"78345212\" }"));
+            }
+
+            if (Optional.ofNullable(account.getCustomerType()).isEmpty()) {
+                return Mono.just(ResponseEntity.ok(""
+                        + "Debe ingresar Tipo Cliente, Ejemplos: \n"
+                        + msgTipoCliente));
+            }
+
 
             /*
                 Se realiza validacion basica de datos para poder registrar
@@ -79,20 +105,15 @@ public class AccountController {
                     isCustomerType = true;
                 }
             }
-            if (!isAccountType) {
+            if (!isAccountType || Optional.ofNullable(account.getAccountType()).isEmpty()) {
                 return Mono.just(ResponseEntity.ok(""
-                        + "Solo existen estas Cuentas: \n"
-                        + "Cuenta Ahorro = { accountType:'CA' }\n"
-                        + "Cuenta Corriente = { accountType:'CC' }\n"
-                        + "Cuenta Plazo Fijo = { accountType:'CPF' }"));
+                        + "Solo existen estos Codigos de Cuentas: \n"
+                        + msgTipoCuenta));
             }
-            if (!isCustomerType) {
+            if (!isCustomerType || Optional.ofNullable(account.getCustomerType()).isEmpty()) {
                 return Mono.just(ResponseEntity.ok(""
-                        + "Solo Existen estos Clientes: \n"
-                        + "Cliente Personal = { customerType:'CP' }\n"
-                        + "Cliente Personal VIP = { customerType:'CPV' }\n"
-                        + "Cliente Empresarial = { customerType:'CE' }\n"
-                        + "Cliente Empresarial PYME = { customerType:'CEP' }"));
+                        + "Solo existen estos Codigos de Tipos de Clientes: \n"
+                        + msgTipoCliente));
             }
 
             /*
@@ -107,13 +128,13 @@ public class AccountController {
                     account.setTopMMovem(0);
                     // El registrador debe ingresar el monto minimo de promedio diario mensual
                     if (Optional.ofNullable(account.getMmpdm()).isEmpty() || account.getMmpdm() <= 0) {
-                        return Mono.just(ResponseEntity.ok("Debe ingresar el Monto minimo de promedio diario mensual Ejemplo: { mmpdm: 100}"));
+                        return Mono.just(ResponseEntity.ok("Debe ingresar el Monto minimo de promedio diario mensual Ejemplo: { \"mmpdm\": 100}"));
                     }
                 } else {
                     account.setMmpdm(0);
-                    // El registrador debe ingresar el Numero de movimientos mensuales
+                    // El registrador debe ingresar el Numero maximo de movimientos mensuales
                     if (Optional.ofNullable(account.getTopMMovem()).isEmpty() || account.getTopMMovem() <= 0) {
-                        return Mono.just(ResponseEntity.ok("Debe ingresar el Numero de movimientos mensuales Ejemplo: { topMMovem: 2}"));
+                        return Mono.just(ResponseEntity.ok("Debe ingresar el Numero maximo de movimientos mensuales Ejemplo: { \"topMMovem\": 2}"));
                     }
                 }
 
@@ -123,8 +144,10 @@ public class AccountController {
                 account.setTopMMovem(1);
                 account.setMmpdm(0);
                 //El registrador debe ingresar el dia del mes en que el usuario puede realizar algun movimiento bancario
-                if (Optional.ofNullable(account.getDayMovem()).isEmpty() || account.getDayMovem() <= 0) {
-                    return Mono.just(ResponseEntity.ok("Debe ingresar el Dia del mes en que el usuario puede realizar algun movimiento Ejemplo: { dayMovem: 21}"));
+                if (Optional.ofNullable(account.getDayMovem()).isEmpty() || account.getDayMovem() <= 0 || account.getDayMovem() > 31) {
+                    return Mono.just(ResponseEntity.ok("Debe ingresar el Dia del mes en que el usuario puede realizar algun movimiento Ejemplo:\n"
+                            + "{ \"dayMovem\": 21} \n"
+                            + "** Los valores son los dias del mes y deben ser entre 1 y 31"));
                 }
             }
             if (AccountType.CURRENT_ACCOUNT.equals(account.getAccountType())) {
