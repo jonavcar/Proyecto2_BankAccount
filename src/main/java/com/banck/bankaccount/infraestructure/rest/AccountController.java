@@ -124,7 +124,13 @@ public class AccountController {
             if (AccountType.SAVINGS_ACCOUNT.equals(account.getAccountType())) {
                 account.setComMaint(false);
                 account.setDayMovem(0);
-                if (CustomerType.PERSONAL_VIP.equals(account.getCustomerType())) {
+                if (CustomerType.PERSONAL.equals(account.getCustomerType())) {
+                    account.setMmpdm(0);
+                    // El registrador debe ingresar el Numero maximo de movimientos mensuales
+                    if (Optional.ofNullable(account.getTopMMovem()).isEmpty() || account.getTopMMovem() <= 0) {
+                        return Mono.just(ResponseEntity.ok("Debe ingresar el Numero maximo de movimientos mensuales Ejemplo: { \"topMMovem\": 2}"));
+                    }
+                } else if (CustomerType.PERSONAL_VIP.equals(account.getCustomerType())) {
                     account.setTopMMovem(0);
                     // El registrador debe ingresar el monto minimo de promedio diario mensual
                     if (Optional.ofNullable(account.getMmpdm()).isEmpty() || account.getMmpdm() <= 0) {
@@ -132,10 +138,7 @@ public class AccountController {
                     }
                 } else {
                     account.setMmpdm(0);
-                    // El registrador debe ingresar el Numero maximo de movimientos mensuales
-                    if (Optional.ofNullable(account.getTopMMovem()).isEmpty() || account.getTopMMovem() <= 0) {
-                        return Mono.just(ResponseEntity.ok("Debe ingresar el Numero maximo de movimientos mensuales Ejemplo: { \"topMMovem\": 2}"));
-                    }
+                    account.setTopMMovem(0);
                 }
 
             }
@@ -143,11 +146,15 @@ public class AccountController {
                 account.setComMaint(false);
                 account.setTopMMovem(1);
                 account.setMmpdm(0);
-                //El registrador debe ingresar el dia del mes en que el usuario puede realizar algun movimiento bancario
-                if (Optional.ofNullable(account.getDayMovem()).isEmpty() || account.getDayMovem() <= 0 || account.getDayMovem() > 31) {
-                    return Mono.just(ResponseEntity.ok("Debe ingresar el Dia del mes en que el usuario puede realizar algun movimiento Ejemplo:\n"
-                            + "{ \"dayMovem\": 21} \n"
-                            + "** Los valores son los dias del mes y deben ser entre 1 y 31"));
+                if (CustomerType.PERSONAL.equals(account.getCustomerType())) {
+                    //El registrador debe ingresar el dia del mes en que el usuario puede realizar algun movimiento bancario
+                    if (Optional.ofNullable(account.getDayMovem()).isEmpty() || account.getDayMovem() <= 0 || account.getDayMovem() > 31) {
+                        return Mono.just(ResponseEntity.ok("Debe ingresar el Dia del mes en que el usuario puede realizar algun movimiento Ejemplo:\n"
+                                + "{ \"dayMovem\": 21} \n"
+                                + "** Los valores son los dias del mes y deben ser entre 1 y 31"));
+                    }
+                } else {
+                    account.setDayMovem(0);
                 }
             }
             if (AccountType.CURRENT_ACCOUNT.equals(account.getAccountType())) {
