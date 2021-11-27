@@ -60,6 +60,7 @@ public class AccountController {
     public Mono<ResponseEntity> create(@RequestBody Account reqAccount) {
         reqAccount.setAccount(reqAccount.getCustomer() + "-" + getRandomNumberString());
         reqAccount.setDateCreated(dateTime.format(formatter));
+        reqAccount.setStatus(true);
         return Mono.just(reqAccount).flatMap(account -> {
             String msgTipoCuenta
                     = "Cuenta Ahorro = { \"accountType\": \"CA\" }\n"
@@ -123,7 +124,6 @@ public class AccountController {
             if (AccountType.SAVINGS_ACCOUNT.equals(account.getAccountType())) {
                 account.setComMaint(false);
                 account.setDayMovem(0);
-                account.setMmpdm(0);
                 if (CustomerType.PERSONAL_VIP.equals(account.getCustomerType())) {
                     account.setTopMMovem(0);
                     // El registrador debe ingresar el monto minimo de promedio diario mensual
