@@ -20,7 +20,7 @@ public enum AccountType {
         public boolean equals(String customerType) {
             return value.equals(customerType);
         }
-    }, FIXED_TERM_ACCOUNT("CF") {
+    }, FIXED_TERM_ACCOUNT("CPF") {
         @Override
         public boolean equals(String customerType) {
             return value.equals(customerType);

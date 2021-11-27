@@ -10,25 +10,25 @@ package com.banck.bankaccount.utils;
  * @author jonavcar
  */
 public enum CustomerType {
-    PERSONAL("PJ") {
+    PERSONAL("CP") {
         @Override
         public boolean equals(String customerType) {
             return value.equals(customerType);
         }
     },
-    PERSONAL_VIP("PV") {
+    PERSONAL_VIP("CPV") {
         @Override
         public boolean equals(String customerType) {
             return value.equals(customerType);
         }
     },
-    BUSINESS("PN") {
+    BUSINESS("CE") {
         @Override
         public boolean equals(String customerType) {
             return value.equals(customerType);
         }
     },
-    BUSINESS_PYME("BP") {
+    BUSINESS_PYME("CEP") {
         @Override
         public boolean equals(String customerType) {
             return value.equals(customerType);

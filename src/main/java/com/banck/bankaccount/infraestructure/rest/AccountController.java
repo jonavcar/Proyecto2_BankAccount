@@ -80,10 +80,19 @@ public class AccountController {
                 }
             }
             if (!isAccountType) {
-                return Mono.just(ResponseEntity.ok("El codigo de Tipo Cuenta (" + account.getAccountType() + "), no existe!"));
+                return Mono.just(ResponseEntity.ok(""
+                        + "Solo existen estas Cuentas: \n"
+                        + "Cuenta Ahorro = { accountType:'CA' }\n"
+                        + "Cuenta Corriente = { accountType:'CC' }\n"
+                        + "Cuenta Plazo Fijo = { accountType:'CPF' }"));
             }
             if (!isCustomerType) {
-                return Mono.just(ResponseEntity.ok("El codigo de Tipo Cliente (" + account.getCustomerType() + "), no existe!"));
+                return Mono.just(ResponseEntity.ok(""
+                        + "Solo Existen estos Clientes: \n"
+                        + "Cliente Personal = { customerType:'CP' }\n"
+                        + "Cliente Personal VIP = { customerType:'CPV' }\n"
+                        + "Cliente Empresarial = { customerType:'CE' }\n"
+                        + "Cliente Empresarial PYME = { customerType:'CEP' }"));
             }
 
             /*
