@@ -92,7 +92,7 @@ public class AccountController {
 
             /*
                 Se realiza validacion basica de datos para poder registrar
-                un cuenta bancaria
+                una cuenta bancaria
              */
             boolean isAccountType = false;
             for (AccountType tc : AccountType.values()) {
