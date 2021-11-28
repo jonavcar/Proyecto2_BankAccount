@@ -120,7 +120,9 @@ public class AccountController {
 
             if (CustomerType.PERSONAL.equals(account.getCustomerType())
                     || CustomerType.PERSONAL_VIP.equals(account.getCustomerType())) {
-
+                if (SunatUtils.isRUCValid(account.getCustomer())) {
+                    return Mono.just(ResponseEntity.ok("El RUC " + account.getCustomer() + " es solo para empresas, debe registrarse con DNI."));
+                }
             } else {
                 if (!SunatUtils.isRUCValid(account.getCustomer())) {
                     return Mono.just(ResponseEntity.ok("El RUC " + account.getCustomer() + " de la Empresa No es Válido!!"));
